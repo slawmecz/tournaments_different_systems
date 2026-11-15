@@ -120,21 +120,6 @@ export function estimateMatches(format, n, opts = {}) {
 
 // ---------------------------------------------------------------- standings
 
-function h2hPoints(a, b, matches) {
-  let pa = 0;
-  let pb = 0;
-  for (const m of matches) {
-    if (m.bye || !isPlayed(m)) continue;
-    const isAB = m.home === a && m.away === b;
-    const isBA = m.home === b && m.away === a;
-    if (!isAB && !isBA) continue;
-    const ga = isAB ? m.hg : m.ag;
-    const gb = isAB ? m.ag : m.hg;
-    if (ga > gb) pa += 3; else if (gb > ga) pb += 3; else { pa++; pb++; }
-  }
-  return pa - pb;
-}
-
 export function computeStandings(ids, matches, { buchholz = false } = {}) {
   const rows = new Map(ids.map((id, i) => [id, { id, idx: i, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, byes: 0, bh: 0, form: [], opps: [] }]));
   const ordered = matches.slice().sort((x, y) => (x.round - y.round) || ((x.playedAt || 0) - (y.playedAt || 0)));
@@ -158,15 +143,33 @@ export function computeStandings(ids, matches, { buchholz = false } = {}) {
   const list = [...rows.values()];
   for (const r of list) r.gd = r.gf - r.ga;
   if (buchholz) for (const r of list) r.bh = r.opps.reduce((s, id) => s + (rows.get(id)?.pts || 0), 0);
-  list.sort((a, b) =>
-    (b.pts - a.pts) ||
-    (buchholz ? b.bh - a.bh : 0) ||
-    (b.gd - a.gd) ||
-    (b.gf - a.gf) ||
-    (-h2hPoints(a.id, b.id, matches)) ||
-    (b.w - a.w) ||
-    (a.idx - b.idx));
-  return list;
+  // Points (→ Buchholz in Swiss) → goal difference → goals scored. Players still level on all of
+  // those are separated by a mini-league of their games against each other (points, goal
+  // difference, goals), then wins, then their order in the player list. Every comparison uses
+  // fixed per-player keys, so the result never depends on the order players were picked.
+  const primary = (a, b) => (b.pts - a.pts) || (buchholz ? b.bh - a.bh : 0) || (b.gd - a.gd) || (b.gf - a.gf);
+  list.sort((a, b) => primary(a, b) || (a.idx - b.idx));
+  const out = [];
+  for (let i = 0; i < list.length;) {
+    let j = i + 1;
+    while (j < list.length && primary(list[i], list[j]) === 0) j++;
+    const group = list.slice(i, j);
+    if (group.length > 1) {
+      const mini = new Map(group.map((r) => [r.id, { pts: 0, gd: 0, gf: 0 }]));
+      for (const m of matches) {
+        if (m.bye || !isPlayed(m) || !mini.has(m.home) || !mini.has(m.away)) continue;
+        const h = mini.get(m.home);
+        const a = mini.get(m.away);
+        h.gf += m.hg; h.gd += m.hg - m.ag; a.gf += m.ag; a.gd += m.ag - m.hg;
+        if (m.hg > m.ag) h.pts += 3; else if (m.hg < m.ag) a.pts += 3; else { h.pts++; a.pts++; }
+      }
+      for (const r of group) r.mini = mini.get(r.id);
+      group.sort((a, b) => (b.mini.pts - a.mini.pts) || (b.mini.gd - a.mini.gd) || (b.mini.gf - a.mini.gf) || (b.w - a.w) || (a.idx - b.idx));
+    }
+    out.push(...group);
+    i = j;
+  }
+  return out;
 }
 
 export function stageMatches(t, stage, group) {
@@ -330,17 +333,27 @@ export function swissCurrentRound(t) {
   return t.matches.reduce((mx, m) => (m.stage === 'swiss' ? Math.max(mx, m.round) : mx), 0);
 }
 
+// After a result in `editedRound` changes, later rounds that have no results yet were drawn from
+// out-of-date standings: drop them so they are re-drawn. Rounds that already have results stay.
+function swissDropStaleRounds(t, editedRound) {
+  for (let r = swissCurrentRound(t); r > editedRound; r--) {
+    const ms = t.matches.filter((m) => m.stage === 'swiss' && m.round === r);
+    if (ms.some((m) => !m.bye && isPlayed(m))) break;
+    t.matches = t.matches.filter((m) => !(m.stage === 'swiss' && m.round === r));
+  }
+}
+
 // Generates the next Swiss round when the current one is complete. Returns the new round number or 0.
 export function swissMaybeNextRound(t) {
   if (t.format !== 'swiss') return 0;
   const cur = swissCurrentRound(t);
   if (cur >= t.opts.rounds) return 0;
-  const curMatches = t.matches.filter((m) => m.stage === 'swiss' && m.round === cur);
-  if (!curMatches.every((m) => m.bye || isPlayed(m))) return 0;
+  // Every game so far must have a result (a cleared result in an older round blocks the draw).
+  if (!t.matches.every((m) => m.stage !== 'swiss' || m.bye || isPlayed(m))) return 0;
   const table = standingsFor(t);
   const played = new Set();
-  const byeCounts = {};
-  const homeCount = {};
+  const byeCounts = Object.create(null);
+  const homeCount = Object.create(null);
   for (const m of t.matches) {
     if (m.stage !== 'swiss') continue;
     if (m.bye) { byeCounts[m.home] = (byeCounts[m.home] || 0) + 1; continue; }
@@ -461,7 +474,7 @@ export function kothState(t) {
   const queue = order.slice(1);
   let streak = 0;
   let done = false;
-  const rows = {};
+  const rows = Object.create(null);
   for (const id of order) rows[id] = { id, p: 0, w: 0, l: 0, gf: 0, ga: 0, best: 0, reigns: 0 };
   const ms = t.matches.filter((m) => m.stage === 'koth').sort((a, b) => a.round - b.round);
   for (const m of ms) {
@@ -549,6 +562,7 @@ export function applyResult(t, matchId, r, now = Date.now()) {
   m.hp = pens ? r.hp : null;
   m.ap = pens ? r.ap : null;
   m.playedAt = m.playedAt || now;
+  if (m.stage === 'swiss') swissDropStaleRounds(t, m.round);
   return progress(t, now);
 }
 
@@ -556,6 +570,9 @@ export function clearMatch(t, matchId, now = Date.now()) {
   const m = t.matches.find((x) => x.id === matchId);
   if (!canEditMatch(t, m)) throw new Error('Match cannot be edited');
   clearResult(m);
+  if (m.stage === 'swiss') swissDropStaleRounds(t, m.round);
+  // Clearing a result after "end the night" re-opens the night, so the match can be replayed.
+  if (m.stage === 'koth') t.endedManually = false;
   return progress(t, now);
 }
 
@@ -568,6 +585,11 @@ export function previewResult(t, matchId, r) {
 
 export function endKoth(t, now = Date.now()) {
   t.endedManually = true;
+  return progress(t, now);
+}
+
+export function resumeKoth(t, now = Date.now()) {
+  t.endedManually = false;
   return progress(t, now);
 }
 

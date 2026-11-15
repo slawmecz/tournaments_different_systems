@@ -1,6 +1,7 @@
 // Local-first data store (localStorage) with change notifications.
 import { uid } from './util.js';
 import { buildContext } from './stats.js';
+import { validateDB } from './validate.js';
 
 const KEY = 'sundayleague.v1';
 const listeners = new Set();
@@ -8,35 +9,30 @@ let db = null;
 let rev = 0;
 let ctxCache = { rev: -1, ctx: null };
 let lastSaveOk = true;
+let loadIssue = null;
 
 export const fresh = () => ({ version: 1, settings: { lang: null, crew: '' }, players: [], tournaments: [] });
 
-export function isValidDB(d) {
-  return !!d && typeof d === 'object' && Array.isArray(d.players) && Array.isArray(d.tournaments) &&
-    d.players.every((p) => p && typeof p.id === 'string' && typeof p.name === 'string') &&
-    d.tournaments.every((t) => t && typeof t.id === 'string' && Array.isArray(t.matches) && Array.isArray(t.players));
-}
-
-function normalize(d) {
-  const base = fresh();
-  return { ...base, ...d, settings: { ...base.settings, ...(d.settings || {}) } };
-}
-
+// Stored data is validated like any import; if it ever fails, a raw copy is kept and the
+// problem is reported to the user (see loadProblem) instead of being silently dropped.
 export function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      if (isValidDB(parsed)) { db = normalize(parsed); return db; }
-      console.error('[store] stored data failed validation; starting empty (raw kept under backup key)');
+      const res = validateDB(JSON.parse(raw));
+      if (res.ok) { db = res.value; return db; }
+      loadIssue = res.error;
+      console.error(`[store] stored data failed validation (${res.error}); raw copy kept under ${KEY}.corrupt`);
       localStorage.setItem(KEY + '.corrupt', raw);
     }
   } catch (e) {
+    loadIssue = String(e && e.message ? e.message : e);
     console.error('[store] could not read storage', e);
   }
   db = fresh();
   return db;
 }
+export const loadProblem = () => loadIssue;
 
 function persist() {
   try {
@@ -64,8 +60,9 @@ export function commit(mutator, info = {}) {
   return result;
 }
 
+// `next` must already be validated (validateDB(...).value).
 export function replaceAll(next) {
-  db = normalize(next);
+  db = next;
   rev++;
   const ok = persist();
   emit({ replaced: true, saved: ok });
@@ -81,12 +78,12 @@ export function watchOtherTabs() {
   window.addEventListener('storage', (e) => {
     if (e.key !== KEY || !e.newValue) return;
     try {
-      const parsed = JSON.parse(e.newValue);
-      if (!isValidDB(parsed)) return;
-      db = normalize(parsed);
+      const res = validateDB(JSON.parse(e.newValue));
+      if (!res.ok) { console.warn('[store] ignored invalid update from another tab:', res.error); return; }
+      db = res.value;
       rev++;
       emit({ external: true, saved: true });
-    } catch { /* ignore partial writes */ }
+    } catch (err) { console.warn('[store] could not read update from another tab', err); }
   });
 }
 

@@ -1,4 +1,4 @@
-import { load, getDB, onChange, setSetting, watchOtherTabs, setGuestPlayers } from './core/store.js';
+import { load, getDB, onChange, setSetting, watchOtherTabs, setGuestPlayers, loadProblem } from './core/store.js';
 import { t, setLang, detectLang, getLang } from './core/i18n.js';
 import { esc, icon, toast } from './ui.js';
 import { setRerender } from './views/common.js';
@@ -72,10 +72,13 @@ function renderChrome(nav) {
 
 let snapshot = { code: null, data: null, error: null };
 
+const errorCard = (msg) => `<div class="page"><div class="card not-found"><h1 class="display h2">${esc(msg)}</h1><p><a class="btn btn-primary" href="#/">${icon('home')}${esc(t('c.goHome'))}</a></p></div></div>`;
+
 function renderRoute({ isNav = false, info = {} } = {}) {
   const { r, params } = parse();
   let html;
   let mountFn = null;
+  try {
   if (!r) {
     html = `<div class="page"><div class="card not-found"><h1 class="display h2">${esc(t('c.notFound'))}</h1><p><a class="btn btn-primary" href="#/">${icon('home')}${esc(t('c.goHome'))}</a></p></div></div>`;
   } else if (r.snapshot) {
@@ -101,12 +104,18 @@ function renderRoute({ isNav = false, info = {} } = {}) {
     html = r.render(params);
     if (r.mount) mountFn = (root) => r.mount(root, params, info);
   }
+  } catch (e) {
+    // Visible error instead of a blank page; details go to the console.
+    console.error('[render] failed', e);
+    html = errorCard(t('c.renderError'));
+    mountFn = null;
+  }
   app.innerHTML = html;
   const page = app.firstElementChild;
   if (isNav && page) page.classList.add('enter');
   // Views bind listeners to the freshly rendered page element (never to #app itself),
   // so handlers are discarded with the old DOM and never pile up across re-renders.
-  mountFn?.(page || app);
+  try { mountFn?.(page || app); } catch (e) { console.error('[mount] failed', e); toast(t('c.renderError'), 'err'); }
   renderChrome(r?.nav);
   document.title = `${r ? t(r.title) : t('c.notFound')} · ${brandName()}`;
   if (isNav) {
@@ -131,6 +140,7 @@ function boot() {
     if (b) changeLang(b.dataset.setLang);
   });
   renderRoute({ isNav: true });
+  if (loadProblem()) toast(t('c.loadProblem'), 'err');
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('[sw] registration failed', e)));
   }

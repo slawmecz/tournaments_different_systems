@@ -1,5 +1,6 @@
 import { t, getLang } from '../core/i18n.js';
-import { getDB, setSetting, replaceAll, isValidDB, fresh, storageBytes, context } from '../core/store.js';
+import { getDB, setSetting, replaceAll, fresh, storageBytes, context } from '../core/store.js';
+import { validateDB } from '../core/validate.js';
 import { esc, icon, toast, confirmDialog } from '../ui.js';
 import { loadDemo, removeDemo, hasDemo } from '../core/demo.js';
 
@@ -72,9 +73,12 @@ export function mount(root, _params, _info, { onLang } = {}) {
     if (!file) return;
     let data;
     try {
-      data = JSON.parse(await file.text());
-      if (!isValidDB(data)) throw new Error('invalid');
-    } catch {
+      if (file.size > 8 * 1024 * 1024) throw new Error('file too large');
+      const res = validateDB(JSON.parse(await file.text()));
+      if (!res.ok) throw new Error(res.error);
+      data = res.value;
+    } catch (err) {
+      console.warn('[import] backup rejected:', err.message);
       toast(t('set.importError'), 'err');
       return;
     }

@@ -24,7 +24,8 @@ export function initials(name = '') {
 }
 
 export function colorVars(p) {
-  const [c1, c2] = COLORS[(p?.color ?? 0) % COLORS.length];
+  const c = p?.color;
+  const [c1, c2] = COLORS[Number.isInteger(c) && c >= 0 ? c % COLORS.length : 0];
   return `--c1:${c1};--c2:${c2}`;
 }
 
@@ -113,13 +114,13 @@ export function openModal({ title = '', body = '', onMount, wide = false, onClos
   return close;
 }
 
-export function confirmDialog({ title, text, confirmLabel = t('c.confirm'), danger = false }) {
+export function confirmDialog({ title, text, confirmLabel = t('c.confirm'), cancelLabel = t('c.cancel'), danger = false }) {
   return new Promise((resolve) => {
     let answered = false;
     openModal({
       title: esc(title),
       body: `<p class="muted" style="margin:0">${esc(text)}</p>
-        <div class="modal-foot"><button class="btn" data-close>${esc(t('c.cancel'))}</button>
+        <div class="modal-foot"><button class="btn" data-close>${esc(cancelLabel)}</button>
         <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-ok>${esc(confirmLabel)}</button></div>`,
       onMount: (m, close) => m.querySelector('[data-ok]').addEventListener('click', () => { answered = true; close(); resolve(true); }),
       onClose: () => { if (!answered) resolve(false); },

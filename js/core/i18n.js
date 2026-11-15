@@ -68,6 +68,7 @@ const pl = {
   't.list': 'Turnieje', 't.listLead': 'Wszystkie wasze wieczory — trwające i zakończone.', 't.active': 'Trwające', 't.done': 'Zakończone',
   't.renamed': 'Nazwa zmieniona', 't.noUpcoming': 'Czekamy na wyniki, które odblokują kolejne mecze.',
   't.kothInfo': 'Wygraj {t} z rzędu, aby zostać Królem Kanapy.',
+  't.resume': 'Wznów wieczór', 't.resumed': 'Wieczór wznowiony — gramy dalej!',
 
   'col.p': 'M', 'col.w': 'Z', 'col.d': 'R', 'col.l': 'P', 'col.goals': 'Bramki', 'col.gd': '+/-', 'col.pts': 'Pkt', 'col.form': 'Forma',
   'col.bh': 'Bh', 'col.elo': 'Elo', 'col.win': '% zw.', 'col.titles': 'Tytuły', 'col.best': 'Seria', 'col.player': 'Gracz',
@@ -123,12 +124,16 @@ const pl = {
   'sh.import': 'Zapisz na tym urządzeniu', 'sh.imported': 'Turniej zapisany na tym urządzeniu', 'sh.invalid': 'Ten link jest uszkodzony lub niepełny.',
   'sh.exists': 'Ten turniej już jest na tym urządzeniu — zaktualizowano go.',
   'sh.standings': 'Tabela', 'sh.results': 'Wyniki', 'sh.champion': 'Mistrz',
+  'sh.conflictTitle': 'Ten turniej już tu jest', 'sh.conflict': 'Twoja wersja ma wyników: {mine}, a wersja z linku: {link}. Zastąpić swoją wersję wersją z linku?',
+  'sh.replace': 'Zastąp moją wersję', 'sh.keep': 'Zostaw moją',
 
   'c.cancel': 'Anuluj', 'c.confirm': 'Potwierdź', 'c.delete': 'Usuń', 'c.close': 'Zamknij', 'c.back': 'Wróć', 'c.save': 'Zapisz',
   'c.copied': 'Skopiowano do schowka', 'c.copyFail': 'Nie udało się skopiować', 'c.vs': 'vs', 'c.yes': 'Tak', 'c.no': 'Nie', 'c.edit': 'Edytuj',
   'c.storageError': 'Nie udało się zapisać danych w przeglądarce (brak miejsca lub tryb prywatny).',
   'c.notFound': 'Nie ma takiej strony', 'c.goHome': 'Wróć na start', 'c.today': 'dziś', 'c.yesterday': 'wczoraj', 'c.daysAgo': '{n} dni temu',
   'c.min': '{n} min', 'c.hm': '{h} godz. {m} min', 'c.h': '{h} godz.',
+  'c.renderError': 'Coś poszło nie tak przy wyświetlaniu tej strony.',
+  'c.loadProblem': 'Zapisane dane były uszkodzone — ich kopia została zachowana, a strona zaczęła od zera.',
 
   'form.W': 'Z', 'form.D': 'R', 'form.L': 'P', 'form.W.full': 'Zwycięstwo', 'form.D.full': 'Remis', 'form.L.full': 'Porażka',
   'n.match': ['mecz', 'mecze', 'meczów'], 'n.goal': ['gol', 'gole', 'goli'], 'n.round': ['runda', 'rundy', 'rund'],
@@ -204,6 +209,7 @@ const en = {
   't.list': 'Tournaments', 't.listLead': 'All your nights — live and finished.', 't.active': 'Live', 't.done': 'Finished',
   't.renamed': 'Renamed', 't.noUpcoming': 'Waiting for results that unlock the next matches.',
   't.kothInfo': 'Win {t} in a row to be crowned King of the Couch.',
+  't.resume': 'Resume the night', 't.resumed': 'Night resumed — play on!',
 
   'col.p': 'P', 'col.w': 'W', 'col.d': 'D', 'col.l': 'L', 'col.goals': 'Goals', 'col.gd': 'GD', 'col.pts': 'Pts', 'col.form': 'Form',
   'col.bh': 'Bh', 'col.elo': 'Elo', 'col.win': 'Win %', 'col.titles': 'Titles', 'col.best': 'Best', 'col.player': 'Player',
@@ -259,12 +265,16 @@ const en = {
   'sh.import': 'Save on this device', 'sh.imported': 'Tournament saved on this device', 'sh.invalid': 'This link is broken or incomplete.',
   'sh.exists': 'This tournament was already on this device — it has been updated.',
   'sh.standings': 'Standings', 'sh.results': 'Results', 'sh.champion': 'Champion',
+  'sh.conflictTitle': 'You already have this tournament', 'sh.conflict': 'Your copy has {mine} results, the link has {link}. Replace your copy with the one from the link?',
+  'sh.replace': 'Replace my copy', 'sh.keep': 'Keep mine',
 
   'c.cancel': 'Cancel', 'c.confirm': 'Confirm', 'c.delete': 'Delete', 'c.close': 'Close', 'c.back': 'Back', 'c.save': 'Save',
   'c.copied': 'Copied to clipboard', 'c.copyFail': 'Could not copy', 'c.vs': 'vs', 'c.yes': 'Yes', 'c.no': 'No', 'c.edit': 'Edit',
   'c.storageError': 'Could not save to browser storage (full or private mode).',
   'c.notFound': 'Page not found', 'c.goHome': 'Back to home', 'c.today': 'today', 'c.yesterday': 'yesterday', 'c.daysAgo': '{n} days ago',
   'c.min': '{n} min', 'c.hm': '{h} h {m} min', 'c.h': '{h} h',
+  'c.renderError': 'Something went wrong while showing this page.',
+  'c.loadProblem': 'Saved data was damaged — a raw copy was kept and the site started fresh.',
 
   'form.W': 'W', 'form.D': 'D', 'form.L': 'L', 'form.W.full': 'Win', 'form.D.full': 'Draw', 'form.L.full': 'Loss',
   'n.match': ['match', 'matches'], 'n.goal': ['goal', 'goals'], 'n.round': ['round', 'rounds'],

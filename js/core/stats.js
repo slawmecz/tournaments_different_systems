@@ -27,9 +27,9 @@ export function playedMatches(db) {
 const outcome = (gf, ga) => (gf > ga ? 'W' : gf < ga ? 'L' : 'D');
 
 export function computeElo(db, matches = playedMatches(db)) {
-  const rating = {};
-  const peak = {};
-  const history = {};
+  const rating = Object.create(null);
+  const peak = Object.create(null);
+  const history = Object.create(null);
   for (const p of db.players) {
     rating[p.id] = ELO_START;
     peak[p.id] = ELO_START;
@@ -55,7 +55,7 @@ export function computeElo(db, matches = playedMatches(db)) {
 }
 
 export function championships(db) {
-  const titles = {};
+  const titles = Object.create(null);
   const list = [];
   for (const t of db.tournaments) {
     const st = tournamentState(t);
@@ -72,7 +72,7 @@ function emptyLine() {
 }
 
 export function playerStats(db, id, ctx = buildContext(db)) {
-  const s = { id, ...emptyLine(), cleanSheets: 0, form: [], curStreak: { type: null, n: 0 }, longestWin: 0, longestUnbeaten: 0, biggestWin: null, vs: {}, matches: [] };
+  const s = { id, ...emptyLine(), cleanSheets: 0, form: [], curStreak: { type: null, n: 0 }, longestWin: 0, longestUnbeaten: 0, biggestWin: null, vs: Object.create(null), matches: [] };
   let win = 0;
   let unbeaten = 0;
   for (const m of ctx.matches) {

@@ -1,6 +1,10 @@
 // Shareable snapshots (compressed into the URL fragment) and plain-text summaries.
-import { FORMAT_IDS, tournamentState, standingsFor, isPlayed, kothState } from './formats.js';
+import { tournamentState, standingsFor, isPlayed, kothState } from './formats.js';
 import { t, fmtDate } from './i18n.js';
+import { validateSnapshot } from './validate.js';
+
+const MAX_LINK_CHARS = 60000;
+const MAX_JSON_CHARS = 400000;
 
 function toB64url(bytes) {
   let bin = '';
@@ -26,33 +30,36 @@ export async function encodeSnapshot(tour, players) {
   return 'j' + toB64url(bytes);
 }
 
-const isNumOrNull = (v) => v === null || v === undefined || (Number.isInteger(v) && v >= 0 && v <= 99);
-
-export function validSnapshot(d) {
-  if (!d || d.v !== 1 || !d.t || !Array.isArray(d.p)) return false;
-  const tour = d.t;
-  if (typeof tour.id !== 'string' || typeof tour.name !== 'string' || !FORMAT_IDS.includes(tour.format)) return false;
-  if (!Array.isArray(tour.players) || !Array.isArray(tour.matches) || !tour.opts || typeof tour.opts !== 'object') return false;
-  if (!d.p.every((p) => p && typeof p.id === 'string' && typeof p.name === 'string')) return false;
-  return tour.matches.every((m) => m && typeof m.stage === 'string' && isNumOrNull(m.hg) && isNumOrNull(m.ag) && isNumOrNull(m.hp) && isNumOrNull(m.ap));
+// Reads at most `limit` characters of decompressed text, so a tiny link cannot expand into megabytes.
+async function readLimited(stream, limit) {
+  const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+  let out = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return out;
+    out += value;
+    if (out.length > limit) { reader.cancel().catch(() => {}); throw new Error('Snapshot too large'); }
+  }
 }
 
+// Returns a fully validated { v, t, p } snapshot or throws.
 export async function decodeSnapshot(code) {
+  if (code.length > MAX_LINK_CHARS) throw new Error('Link too long');
   const kind = code[0];
   const bytes = fromB64url(code.slice(1));
   let json;
   if (kind === 'z') {
     if (!canCompress()) throw new Error('Compression not supported');
-    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-    json = await new Response(stream).text();
+    json = await readLimited(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')), MAX_JSON_CHARS);
   } else if (kind === 'j') {
     json = new TextDecoder().decode(bytes);
+    if (json.length > MAX_JSON_CHARS) throw new Error('Snapshot too large');
   } else {
     throw new Error('Unknown snapshot type');
   }
-  const data = JSON.parse(json);
-  if (!validSnapshot(data)) throw new Error('Invalid snapshot');
-  return data;
+  const res = validateSnapshot(JSON.parse(json));
+  if (!res.ok) throw new Error('Invalid snapshot: ' + res.error);
+  return res.value;
 }
 
 // Short text for WhatsApp / Messenger.

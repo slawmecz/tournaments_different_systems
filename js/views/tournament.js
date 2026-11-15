@@ -1,9 +1,10 @@
 import { t, fmtNum } from '../core/i18n.js';
-import { tournament, updateTournament, deleteTournament, player, getDB, commit } from '../core/store.js';
+import { tournament, updateTournament, deleteTournament, player, commit } from '../core/store.js';
 import {
   tournamentState, standingsFor, upcomingMatches, isPlayed, matchWinner, needsWinner, previewResult,
-  applyResult, clearMatch, kothState, endKoth, canEditMatch, validateResult, stageMatches,
+  applyResult, clearMatch, kothState, endKoth, resumeKoth, canEditMatch, validateResult, stageMatches,
 } from '../core/formats.js';
+import { deepClone } from '../core/util.js';
 import { esc, icon, avatar, pname, playerLink, formChips, toast, openModal, confirmDialog, promptDialog, confetti, trophySVG, copyText } from '../ui.js';
 import { matchRow, byeRow, matchLabel, koRoundName, groupLetter, statusBadge, FORMAT_ICON, formatName, dateLong, rerender } from './common.js';
 import { encodeSnapshot, textSummary } from '../core/share.js';
@@ -130,7 +131,7 @@ function tableTab(tour) {
 
 function groupsTab(tour) {
   return `<div class="grid-2">${tour.groups.map((_, g) => `<div class="card group-card">
-    <div class="section-head"><span class="group-letter">${groupLetter(g)}</span><h3 class="h3" style="flex:1">${esc(t('t.group', { g: groupLetter(g) }))}</h3><span class="badge badge-accent">${esc(t('t.qualify'))}: ${tour.opts.advance}</span></div>
+    <div class="section-head"><span class="group-letter">${groupLetter(g)}</span><h3 class="h3" style="flex:1">${esc(t('t.group', { g: groupLetter(g) }))}</h3><span class="badge badge-accent">${esc(t('t.qualify'))}: ${Number(tour.opts.advance) || 0}</span></div>
     ${standingsTable(standingsFor(tour, g), { qualify: tour.opts.advance, compact: true })}
   </div>`).join('')}</div>`;
 }
@@ -374,11 +375,13 @@ function feedback(res, wasDone) {
 function openMenu(tour) {
   const st = tournamentState(tour);
   const canEnd = tour.format === 'koth' && !st.done && tour.matches.some(isPlayed);
+  const canResume = tour.format === 'koth' && tour.endedManually === true;
   openModal({
     title: esc(tour.name),
     body: `<div class="menu-list">
       <button class="btn" data-m="rename">${icon('edit')}${esc(t('t.rename'))}</button>
       ${canEnd ? `<button class="btn" data-m="end">${icon('flag')}${esc(t('t.end'))}</button>` : ''}
+      ${canResume ? `<button class="btn" data-m="resume">${icon('play')}${esc(t('t.resume'))}</button>` : ''}
       <button class="btn btn-danger" data-m="delete">${icon('trash')}${esc(t('t.delete'))}</button>
     </div>`,
     onMount: (el, close) => {
@@ -394,6 +397,11 @@ function openMenu(tour) {
         document.querySelector('.trophy-wrap')?.classList.add('celebrate');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setTimeout(() => confetti(), 300);
+      });
+      el.querySelector('[data-m="resume"]')?.addEventListener('click', () => {
+        close();
+        updateTournament(tour.id, (x) => resumeKoth(x));
+        toast(t('t.resumed'));
       });
       el.querySelector('[data-m="delete"]').addEventListener('click', async () => {
         close();
@@ -441,18 +449,31 @@ function openShare(tour) {
   });
 }
 
-function importSnapshot(snapshot) {
-  const db = getDB();
-  const exists = db.tournaments.some((x) => x.id === snapshot.t.id);
+// The snapshot was fully validated when the link was decoded (validate.js).
+async function importSnapshot(snapshot) {
+  const local = tournament(snapshot.t.id);
+  if (local) {
+    // Never overwrite a local copy silently: an old link could hold fewer results.
+    const played = (x) => x.matches.filter((m) => !m.bye && isPlayed(m)).length;
+    const mine = played(local);
+    const link = played(snapshot.t);
+    const replace = await confirmDialog({
+      title: t('sh.conflictTitle'),
+      text: t('sh.conflict', { mine, link }),
+      confirmLabel: t('sh.replace'),
+      cancelLabel: t('sh.keep'),
+      danger: mine > link,
+    });
+    if (!replace) { location.hash = `#/t/${local.id}`; return; }
+  }
+  const copy = deepClone(snapshot.t);
   commit((d) => {
-    for (const p of snapshot.p) {
-      if (!d.players.some((x) => x.id === p.id)) d.players.push({ id: p.id, name: String(p.name).slice(0, 24), emoji: p.emoji || '', color: Number(p.color) || 0, club: '', createdAt: Date.now() });
-    }
-    d.tournaments = d.tournaments.filter((x) => x.id !== snapshot.t.id);
-    d.tournaments.push(snapshot.t);
+    for (const p of snapshot.p) if (!d.players.some((x) => x.id === p.id)) d.players.push({ ...p });
+    d.tournaments = d.tournaments.filter((x) => x.id !== copy.id);
+    d.tournaments.push(copy);
   }, { type: 'import-snapshot' });
-  toast(exists ? t('sh.exists') : t('sh.imported'));
-  location.hash = `#/t/${snapshot.t.id}`;
+  toast(local ? t('sh.exists') : t('sh.imported'));
+  location.hash = `#/t/${copy.id}`;
 }
 
 // ---------------------------------------------------------------- events
