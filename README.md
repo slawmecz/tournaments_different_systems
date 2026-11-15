@@ -1,4 +1,4 @@
-# Sunday League ⚽🏆
+# Weekend League ⚽🏆
 
 A fast, good-looking website for running football game-night tournaments with friends.
 Pick a format, tick who is playing, enter scores on your phone — tables, brackets,

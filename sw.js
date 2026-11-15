@@ -1,5 +1,5 @@
 // Network-first service worker: always fresh when online, still works offline.
-const CACHE = 'sunday-league-v1';
+const CACHE = 'weekend-league-v1';
 const CORE = ['./', './index.html', './css/app.css', './js/main.js', './manifest.webmanifest', './assets/icons/favicon.svg'];
 
 self.addEventListener('install', (event) => {

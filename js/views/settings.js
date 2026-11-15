@@ -65,7 +65,7 @@ export function mount(root, _params, _info, { onLang } = {}) {
   root.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => onLang?.(b.dataset.lang)));
   root.querySelector('[data-export]').addEventListener('click', () => {
     const stamp = new Date().toISOString().slice(0, 10);
-    download(`sunday-league-backup-${stamp}.json`, JSON.stringify(getDB(), null, 1));
+    download(`weekend-league-backup-${stamp}.json`, JSON.stringify(getDB(), null, 1));
   });
   root.querySelector('[data-import]').addEventListener('change', async (e) => {
     const file = e.target.files[0];

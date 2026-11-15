@@ -1,6 +1,6 @@
 {
-  "name": "Sunday League",
-  "short_name": "Sunday League",
+  "name": "Weekend League",
+  "short_name": "Weekend League",
   "description": "Football tournament nights with friends: league, knockout, Swiss, groups and King of the Couch.",
   "start_url": "./",
   "scope": "./",

@@ -1,14 +1,14 @@
 // Translations (Polish + English) with plural rules and date formatting.
 
 const pl = {
-  'brand.default': 'Niedzielna Liga',
+  'brand.default': 'Weekend League',
   'nav.home': 'Start', 'nav.tournaments': 'Turnieje', 'nav.players': 'Gracze', 'nav.stats': 'Statystyki', 'nav.settings': 'Ustawienia',
   'nav.new': 'Nowy turniej', 'nav.newShort': 'Nowy',
-  'footer.tagline': 'Niedzielne wieczory, piłka i przechwałki.',
+  'footer.tagline': 'Weekendowe wieczory, piłka i przechwałki.',
   'footer.local': 'Dane zapisane lokalnie w tej przeglądarce',
 
   'home.eyebrow': 'Konsolowe turnieje piłkarskie',
-  'home.title1': 'Każda niedziela.', 'home.title2': 'Nowy mistrz.',
+  'home.title1': 'Każdy weekend.', 'home.title2': 'Nowy mistrz.',
   'home.lead': 'Twórz turnieje w kilka sekund, wpisuj wyniki na żywo i sprawdź, kto naprawdę rządzi na kanapie.',
   'home.ctaNew': 'Zacznij turniej', 'home.ctaPlayers': 'Dodaj graczy', 'home.ctaContinue': 'Wróć do turnieju',
   'home.live': 'Trwa teraz', 'home.continue': 'Kontynuuj', 'home.nextMatch': 'Następny mecz',
@@ -83,7 +83,7 @@ const pl = {
   'pl.avatar': 'Awatar', 'pl.color': 'Kolor', 'pl.delete': 'Usuń gracza',
   'pl.cantDelete': 'Ten gracz ma historię turniejów, więc nie można go usunąć. Możesz zmienić mu imię.',
   'pl.deleteConfirm': 'Usunąć gracza {name}?', 'pl.deleted': 'Gracz usunięty', 'pl.saved': 'Gracz zapisany', 'pl.added': 'Dodano: {name}',
-  'pl.nameRequired': 'Podaj imię', 'pl.empty': 'Brak graczy', 'pl.emptyD': 'Dodaj znajomych, z którymi gracie w niedziele.',
+  'pl.nameRequired': 'Podaj imię', 'pl.empty': 'Brak graczy', 'pl.emptyD': 'Dodaj znajomych, z którymi gracie.',
   'pl.matches': 'Mecze', 'pl.winRate': 'Skuteczność', 'pl.gpm': 'Gole na mecz', 'pl.titles': 'Tytuły', 'pl.rank': '#{n} w rankingu',
   'pl.form': 'Forma (ostatnie 10)', 'pl.elo': 'Historia Elo', 'pl.eloSub': 'Ranking po każdym meczu', 'pl.rivals': 'Rywale',
   'pl.nemesis': 'Zmora', 'pl.victim': 'Ulubiona ofiara', 'pl.h2h': 'Bilans z rywalami', 'pl.recent': 'Ostatnie mecze',
@@ -142,14 +142,14 @@ const pl = {
 };
 
 const en = {
-  'brand.default': 'Sunday League',
+  'brand.default': 'Weekend League',
   'nav.home': 'Home', 'nav.tournaments': 'Tournaments', 'nav.players': 'Players', 'nav.stats': 'Stats', 'nav.settings': 'Settings',
   'nav.new': 'New tournament', 'nav.newShort': 'New',
-  'footer.tagline': 'Sunday nights, football and bragging rights.',
+  'footer.tagline': 'Weekend nights, football and bragging rights.',
   'footer.local': 'Data is stored locally in this browser',
 
   'home.eyebrow': 'Console football tournaments',
-  'home.title1': 'Every Sunday.', 'home.title2': 'A new champion.',
+  'home.title1': 'Every weekend.', 'home.title2': 'A new champion.',
   'home.lead': 'Set up a tournament in seconds, enter scores live and find out who really rules the couch.',
   'home.ctaNew': 'Start a tournament', 'home.ctaPlayers': 'Add players', 'home.ctaContinue': 'Back to the tournament',
   'home.live': 'Live now', 'home.continue': 'Continue', 'home.nextMatch': 'Next match',
@@ -224,7 +224,7 @@ const en = {
   'pl.avatar': 'Avatar', 'pl.color': 'Colour', 'pl.delete': 'Delete player',
   'pl.cantDelete': 'This player has tournament history, so they cannot be deleted. You can rename them.',
   'pl.deleteConfirm': 'Delete {name}?', 'pl.deleted': 'Player deleted', 'pl.saved': 'Player saved', 'pl.added': 'Added: {name}',
-  'pl.nameRequired': 'Enter a name', 'pl.empty': 'No players yet', 'pl.emptyD': 'Add the friends you play with on Sundays.',
+  'pl.nameRequired': 'Enter a name', 'pl.empty': 'No players yet', 'pl.emptyD': 'Add the friends you play with.',
   'pl.matches': 'Matches', 'pl.winRate': 'Win rate', 'pl.gpm': 'Goals per match', 'pl.titles': 'Titles', 'pl.rank': '#{n} in the ranking',
   'pl.form': 'Form (last 10)', 'pl.elo': 'Elo history', 'pl.eloSub': 'Rating after every match', 'pl.rivals': 'Rivals',
   'pl.nemesis': 'Nemesis', 'pl.victim': 'Favourite victim', 'pl.h2h': 'Head-to-head', 'pl.recent': 'Recent matches',

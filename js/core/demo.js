@@ -54,16 +54,17 @@ export function loadDemo() {
     }
     tours.push(tour);
   };
-  const sunday = (weeksAgo) => {
+  // Saturday (6) or Sunday (0) evening of a past weekend.
+  const weekend = (weeksAgo, weekday) => {
     const d = new Date(now - weeksAgo * 7 * day);
-    d.setDate(d.getDate() - d.getDay());
+    d.setDate(d.getDate() - ((d.getDay() - weekday + 7) % 7));
     d.setHours(19, 0, 0, 0);
     return d.getTime();
   };
-  play('league', ids.slice(0, 6), { legs: 1 }, sunday(4));
-  play('knockout', ids, { thirdPlace: true, seeding: 'random' }, sunday(3));
-  play('groups', ids, { groups: 2, advance: 2, legs: 1, thirdPlace: false }, sunday(2));
-  play('swiss', ids.slice(0, 7), { rounds: 4 }, sunday(1));
+  play('league', ids.slice(0, 6), { legs: 1 }, weekend(4, 6));
+  play('knockout', ids, { thirdPlace: true, seeding: 'random' }, weekend(3, 0));
+  play('groups', ids, { groups: 2, advance: 2, legs: 1, thirdPlace: false }, weekend(2, 6));
+  play('swiss', ids.slice(0, 7), { rounds: 4 }, weekend(1, 0));
   // Tonight: a league in progress.
   play('league', [ids[0], ids[1], ids[2], ids[4], ids[5], ids[7]], { legs: 1 }, now - 2 * 3600000, 8);
   commit((d) => { d.players.push(...players); d.tournaments.push(...tours); }, { type: 'demo' });

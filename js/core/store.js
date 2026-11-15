@@ -3,6 +3,7 @@ import { uid } from './util.js';
 import { buildContext } from './stats.js';
 import { validateDB } from './validate.js';
 
+// Internal storage key; kept unchanged so data saved by earlier versions is still found.
 const KEY = 'sundayleague.v1';
 const listeners = new Set();
 let db = null;
