@@ -24,6 +24,24 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preload" href="assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/app.css">
+  <!-- fetch the whole module graph in parallel instead of import-by-import -->
+  <link rel="modulepreload" href="js/main.js">
+  <link rel="modulepreload" href="js/ui.js">
+  <link rel="modulepreload" href="js/core/demo.js">
+  <link rel="modulepreload" href="js/core/formats.js">
+  <link rel="modulepreload" href="js/core/i18n.js">
+  <link rel="modulepreload" href="js/core/share.js">
+  <link rel="modulepreload" href="js/core/stats.js">
+  <link rel="modulepreload" href="js/core/store.js">
+  <link rel="modulepreload" href="js/core/util.js">
+  <link rel="modulepreload" href="js/core/validate.js">
+  <link rel="modulepreload" href="js/views/common.js">
+  <link rel="modulepreload" href="js/views/home.js">
+  <link rel="modulepreload" href="js/views/players.js">
+  <link rel="modulepreload" href="js/views/settings.js">
+  <link rel="modulepreload" href="js/views/stats.js">
+  <link rel="modulepreload" href="js/views/tournament.js">
+  <link rel="modulepreload" href="js/views/tournaments.js">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
