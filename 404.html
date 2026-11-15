@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found · Sunday League</title>
+  <meta name="robots" content="noindex">
+  <style>
+    html, body { margin: 0; height: 100%; background: #05080f; color: #eef3fb; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    body { display: grid; place-items: center; text-align: center; padding: 24px; }
+    a { color: #2bff88; font-weight: 600; }
+  </style>
+  <script>
+    // The app uses hash routes, so any unknown path goes back to the site root.
+    // On <user>.github.io/<repo>/ the root is the first path segment; on a custom domain it is "/".
+    (function () {
+      var seg = location.pathname.split('/').filter(Boolean)[0];
+      var root = /\.github\.io$/.test(location.hostname) && seg ? '/' + seg + '/' : '/';
+      location.replace(root);
+    })();
+  </script>
+</head>
+<body>
+  <p>Page not found. <a href="/">Go to the home page</a>.</p>
+</body>
+</html>
